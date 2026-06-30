@@ -1,12 +1,12 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireAuth } from "@/lib/rbac";
+import { requireAuth } from "@/lib/auth";
 import { jsonError, jsonSuccess } from "@/lib/api-helpers";
 import { PipelineStatus, PipelineType } from "@prisma/client";
 import { toDecimal, calcExpectedRevenue } from "@/lib/decimal";
 
-export async function GET(req: NextRequest) {
-  const auth = requireAuth(req);
+export async function GET() {
+  const auth = await requireAuth();
   if (auth.error) return auth.error;
 
   const pipelines = await prisma.pipeline.findMany({
@@ -22,7 +22,7 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  const auth = requireAuth(req);
+  const auth = await requireAuth();
   if (auth.error) return auth.error;
 
   const { customerId, title, type, cost, successRate, status, ownerId } = await req.json();
@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
       successRate: rate,
       expectedRevenue: calcExpectedRevenue(costNum, rate),
       status: (status as PipelineStatus) || PipelineStatus.POTENTIAL,
-      ownerId: ownerId || auth.user.sub,
+      ownerId: ownerId || auth.user.id,
     },
     include: {
       customer: true,

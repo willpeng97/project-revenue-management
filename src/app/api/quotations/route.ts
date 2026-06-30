@@ -1,12 +1,12 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireAuth, canViewInternalCost } from "@/lib/rbac";
+import { requireAuth, canViewInternalCost } from "@/lib/auth";
 import { jsonError, jsonSuccess } from "@/lib/api-helpers";
 import { QuotationStatus } from "@prisma/client";
 import { toDecimal } from "@/lib/decimal";
 
-export async function GET(req: NextRequest) {
-  const auth = requireAuth(req);
+export async function GET() {
+  const auth = await requireAuth();
   if (auth.error) return auth.error;
 
   const quotations = await prisma.quotation.findMany({
@@ -31,7 +31,7 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  const auth = requireAuth(req);
+  const auth = await requireAuth();
   if (auth.error) return auth.error;
 
   const { pipelineId, paymentTerms, items, internalCost } = await req.json();

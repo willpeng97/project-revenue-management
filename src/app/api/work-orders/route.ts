@@ -1,11 +1,11 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireAuth } from "@/lib/rbac";
+import { requireAuth } from "@/lib/auth";
 import { jsonError, jsonSuccess } from "@/lib/api-helpers";
 import { WorkOrderStatus } from "@prisma/client";
 
 export async function GET(req: NextRequest) {
-  const auth = requireAuth(req);
+  const auth = await requireAuth();
   if (auth.error) return auth.error;
 
   const projectId = req.nextUrl.searchParams.get("projectId");
@@ -23,7 +23,7 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  const auth = requireAuth(req);
+  const auth = await requireAuth();
   if (auth.error) return auth.error;
 
   const { projectId, customerId, serviceDate, description, engineerId, attachmentUrl, customerSignature, status } =
@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
       customerId,
       serviceDate: new Date(serviceDate),
       description,
-      engineerId: engineerId || auth.user.sub,
+      engineerId: engineerId || auth.user.id,
       attachmentUrl,
       customerSignature,
       status: (status as WorkOrderStatus) || WorkOrderStatus.DRAFT,

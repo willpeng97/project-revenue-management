@@ -1,8 +1,5 @@
 "use client";
 
-import { create } from "zustand";
-import { persist } from "zustand/middleware";
-
 export interface AuthUser {
   id: string;
   email: string;
@@ -10,32 +7,13 @@ export interface AuthUser {
   role: string;
 }
 
-interface AuthState {
-  user: AuthUser | null;
-  accessToken: string | null;
-  setAuth: (user: AuthUser, accessToken: string) => void;
-  logout: () => void;
-}
-
-export const useAuthStore = create<AuthState>()(
-  persist(
-    (set) => ({
-      user: null,
-      accessToken: null,
-      setAuth: (user, accessToken) => set({ user, accessToken }),
-      logout: () => set({ user: null, accessToken: null }),
-    }),
-    { name: "m122-auth" }
-  )
-);
-
 async function request<T>(url: string, options: RequestInit = {}): Promise<T> {
-  const token = useAuthStore.getState().accessToken;
+  // Authentication is carried by the Clerk session cookie, which is sent
+  // automatically on same-origin requests.
   const res = await fetch(url, {
     ...options,
     headers: {
       "Content-Type": "application/json",
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...options.headers,
     },
   });
@@ -45,11 +23,6 @@ async function request<T>(url: string, options: RequestInit = {}): Promise<T> {
 }
 
 export const api = {
-  login: (email: string, password: string) =>
-    request<{ user: AuthUser; accessToken: string }>("/api/auth/login", {
-      method: "POST",
-      body: JSON.stringify({ email, password }),
-    }),
   me: () => request<{ user: AuthUser }>("/api/auth/me"),
   dashboard: () => request<DashboardData>("/api/dashboard"),
   customers: () => request<Customer[]>("/api/customers"),

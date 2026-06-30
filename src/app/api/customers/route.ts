@@ -1,10 +1,10 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireAuth } from "@/lib/rbac";
+import { requireAuth } from "@/lib/auth";
 import { jsonError, jsonSuccess } from "@/lib/api-helpers";
 
-export async function GET(req: NextRequest) {
-  const auth = requireAuth(req);
+export async function GET() {
+  const auth = await requireAuth();
   if (auth.error) return auth.error;
 
   const customers = await prisma.customer.findMany({ orderBy: { createdAt: "desc" } });
@@ -12,7 +12,7 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  const auth = requireAuth(req);
+  const auth = await requireAuth();
   if (auth.error) return auth.error;
 
   const { name, taxId, contact, phone, email, address } = await req.json();

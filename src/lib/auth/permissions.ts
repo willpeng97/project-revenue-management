@@ -1,9 +1,6 @@
 import { Role } from "@prisma/client";
-import { NextResponse } from "next/server";
-import { NextRequest } from "next/server";
-import { getTokenFromRequest, verifyAccessToken, TokenPayload } from "./auth";
 
-type Permission =
+export type Permission =
   | "manage_users"
   | "view_all"
   | "create_pipeline"
@@ -62,29 +59,4 @@ export function hasPermission(role: Role, permission: Permission) {
 
 export function canViewInternalCost(role: Role) {
   return hasPermission(role, "view_internal_cost");
-}
-
-export type AuthResult =
-  | { user: TokenPayload; error?: never }
-  | { user?: never; error: NextResponse };
-
-export function requireAuth(req: NextRequest): AuthResult {
-  const token = getTokenFromRequest(req);
-  if (!token) {
-    return { error: NextResponse.json({ error: "未授權" }, { status: 401 }) };
-  }
-  const user = verifyAccessToken(token);
-  if (!user) {
-    return { error: NextResponse.json({ error: "Token 無效或已過期" }, { status: 401 }) };
-  }
-  return { user };
-}
-
-export function requirePermission(req: NextRequest, permission: Permission): AuthResult {
-  const result = requireAuth(req);
-  if (result.error) return result;
-  if (!hasPermission(result.user.role, permission)) {
-    return { error: NextResponse.json({ error: "權限不足" }, { status: 403 }) };
-  }
-  return result;
 }

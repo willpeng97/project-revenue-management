@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireAuth } from "@/lib/rbac";
+import { requireAuth } from "@/lib/auth";
 import { jsonError, jsonSuccess } from "@/lib/api-helpers";
 import { ProjectStatus } from "@prisma/client";
 
@@ -27,7 +27,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
 }
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const auth = requireAuth(req);
+  const auth = await requireAuth();
   if (auth.error) return auth.error;
 
   const { id } = await params;

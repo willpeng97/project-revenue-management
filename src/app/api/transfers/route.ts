@@ -1,12 +1,12 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireAuth } from "@/lib/rbac";
+import { requireAuth } from "@/lib/auth";
 import { jsonError, jsonSuccess } from "@/lib/api-helpers";
 import { TransferType } from "@prisma/client";
 import { toDecimal } from "@/lib/decimal";
 
 export async function GET(req: NextRequest) {
-  const auth = requireAuth(req);
+  const auth = await requireAuth();
   if (auth.error) return auth.error;
 
   const projectId = req.nextUrl.searchParams.get("projectId");
@@ -28,7 +28,7 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  const auth = requireAuth(req);
+  const auth = await requireAuth();
   if (auth.error) return auth.error;
 
   const { projectId, amount, type, date, remark } = await req.json();
@@ -41,7 +41,7 @@ export async function POST(req: NextRequest) {
       type: (type as TransferType) || TransferType.NORMAL,
       date: date ? new Date(date) : new Date(),
       remark,
-      createdBy: auth.user.sub,
+      createdBy: auth.user.id,
     },
     include: {
       creator: { select: { name: true } },

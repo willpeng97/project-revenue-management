@@ -71,14 +71,14 @@ enum WorkOrderStatus {
 }
 
 model User {
-  id           String    @id @default(cuid())
-  email        String    @unique
-  password     String
-  name         String
-  role         Role      @default(SALES)
-  refreshToken String?
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  id          String    @id @default(cuid())
+  clerkId     String    @unique
+  email       String    @unique
+  name        String
+  role        Role      @default(SALES)
+  lastLoginAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
   ownedPipelines  Pipeline[]  @relation("PipelineOwner")
   managedProjects Project[]   @relation("ProjectManager")

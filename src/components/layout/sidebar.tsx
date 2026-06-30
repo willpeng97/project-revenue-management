@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { SignOutButton } from "@clerk/nextjs";
+import { Role } from "@prisma/client";
 import {
   LayoutDashboard,
   GitBranch,
@@ -15,7 +17,6 @@ import {
   LogOut,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useAuthStore } from "@/lib/api-client";
 import { ROLE_LABELS } from "@/lib/constants";
 
 const navItems = [
@@ -30,9 +31,8 @@ const navItems = [
   { href: "/users", label: "使用者", icon: Users, adminOnly: true },
 ];
 
-export function Sidebar() {
+export function Sidebar({ userName, role }: { userName: string; role: Role }) {
   const pathname = usePathname();
-  const { user, logout } = useAuthStore();
 
   return (
     <aside className="flex w-64 flex-col border-r border-slate-200 bg-slate-900 text-white">
@@ -42,7 +42,7 @@ export function Sidebar() {
       </div>
       <nav className="flex-1 space-y-1 p-4">
         {navItems
-          .filter((item) => !item.adminOnly || user?.role === "ADMIN")
+          .filter((item) => !item.adminOnly || role === "ADMIN")
           .map((item) => {
             const Icon = item.icon;
             const active = pathname.startsWith(item.href);
@@ -63,19 +63,15 @@ export function Sidebar() {
       </nav>
       <div className="border-t border-slate-700 p-4">
         <div className="mb-3 px-2">
-          <p className="text-sm font-medium">{user?.name}</p>
-          <p className="text-xs text-slate-400">{user ? ROLE_LABELS[user.role] : ""}</p>
+          <p className="text-sm font-medium">{userName}</p>
+          <p className="text-xs text-slate-400">{ROLE_LABELS[role]}</p>
         </div>
-        <button
-          onClick={() => {
-            logout();
-            window.location.href = "/login";
-          }}
-          className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-slate-300 hover:bg-slate-800"
-        >
-          <LogOut className="h-4 w-4" />
-          登出
-        </button>
+        <SignOutButton redirectUrl="/login">
+          <button className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-slate-300 hover:bg-slate-800">
+            <LogOut className="h-4 w-4" />
+            登出
+          </button>
+        </SignOutButton>
       </div>
     </aside>
   );
