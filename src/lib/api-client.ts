@@ -87,6 +87,7 @@ export interface Pipeline {
   status: string;
   customer: Customer;
   owner: { id: string; name: string };
+  createdAt?: string;
 }
 
 export interface Quotation {
@@ -97,6 +98,7 @@ export interface Quotation {
   paymentTerms?: string;
   pipeline: { customer: Customer; title: string };
   items?: { id: string; name: string; amount: string }[];
+  createdAt?: string;
 }
 
 export interface Project {

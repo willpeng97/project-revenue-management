@@ -17,10 +17,10 @@ export default async function DashboardLayout({ children }: { children: React.Re
   if (!user) redirect("/login");
 
   return (
-    <div className="flex min-h-screen bg-slate-50">
+    <div className="flex min-h-screen bg-background">
       <Sidebar userName={user.name} role={user.role} />
       <main className="flex-1 overflow-auto">
-        <div className="p-8">{children}</div>
+        <div className="mx-auto max-w-[1400px] p-6 lg:p-8">{children}</div>
       </main>
     </div>
   );
