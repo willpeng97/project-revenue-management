@@ -24,6 +24,18 @@ export type AccentKey =
   | "warning"
   | "danger";
 
+export const ACCENT_HEX: Record<AccentKey, string> = {
+  primary: CHART_COLORS.blue,
+  revenue: CHART_COLORS.emerald,
+  cost: CHART_COLORS.orange,
+  profit: CHART_COLORS.blue,
+  pipeline: CHART_COLORS.purple,
+  transfer: CHART_COLORS.amber,
+  success: CHART_COLORS.emerald,
+  warning: CHART_COLORS.amber,
+  danger: CHART_COLORS.red,
+};
+
 // Tailwind class fragments for accent surfaces (icon chips, bars, dots).
 export const ACCENTS: Record<AccentKey, { icon: string; dot: string; text: string }> = {
   primary: { icon: "bg-blue-50 text-blue-600", dot: "bg-blue-500", text: "text-blue-600" },

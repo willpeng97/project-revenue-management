@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { SignOutButton } from "@clerk/nextjs";
@@ -16,11 +17,21 @@ import {
   Building2,
   LogOut,
   TrendingUp,
+  BarChart3,
+  ChevronRight,
+  type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ROLE_LABELS } from "@/lib/constants";
 
-const navItems = [
+interface NavItem {
+  href: string;
+  label: string;
+  icon: LucideIcon;
+  adminOnly?: boolean;
+}
+
+const topItems: NavItem[] = [
   { href: "/dashboard", label: "儀表板", icon: LayoutDashboard },
   { href: "/pipelines", label: "商機 Pipeline", icon: GitBranch },
   { href: "/quotations", label: "報價管理", icon: FileText },
@@ -28,12 +39,50 @@ const navItems = [
   { href: "/tasks", label: "任務看板", icon: CheckSquare },
   { href: "/work-orders", label: "工作支援單", icon: ClipboardList },
   { href: "/transfers", label: "轉撥管理", icon: ArrowLeftRight },
+];
+
+const analyticsItems = [
+  { href: "/analytics", label: "Overview" },
+  { href: "/analytics/revenue", label: "Revenue 營收" },
+  { href: "/analytics/pipeline", label: "Pipeline 商機" },
+  { href: "/analytics/project", label: "Project 專案" },
+  { href: "/analytics/sales", label: "Sales 業務" },
+  { href: "/analytics/transfer", label: "Transfer 轉撥" },
+  { href: "/analytics/customer", label: "Customer 客戶" },
+];
+
+const bottomItems: NavItem[] = [
   { href: "/customers", label: "客戶管理", icon: Building2 },
   { href: "/users", label: "使用者", icon: Users, adminOnly: true },
 ];
 
+function NavLink({ item, active }: { item: NavItem; active: boolean }) {
+  const Icon = item.icon;
+  return (
+    <Link
+      href={item.href}
+      aria-current={active ? "page" : undefined}
+      className={cn(
+        "group relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-all",
+        active ? "bg-slate-800/80 font-medium text-white" : "text-slate-400 hover:bg-slate-800/50 hover:text-white"
+      )}
+    >
+      {active && <span className="absolute left-0 top-1/2 h-5 w-0.5 -translate-y-1/2 rounded-r-full bg-blue-500" />}
+      <Icon
+        className={cn(
+          "h-[18px] w-[18px] transition-transform group-hover:scale-110",
+          active ? "text-blue-400" : "text-slate-500 group-hover:text-slate-300"
+        )}
+      />
+      {item.label}
+    </Link>
+  );
+}
+
 export function Sidebar({ userName, role }: { userName: string; role: Role }) {
   const pathname = usePathname();
+  const analyticsActive = pathname === "/analytics" || pathname.startsWith("/analytics/");
+  const [analyticsOpen, setAnalyticsOpen] = useState(analyticsActive);
   const initial = userName?.trim().charAt(0).toUpperCase() || "U";
 
   return (
@@ -48,40 +97,60 @@ export function Sidebar({ userName, role }: { userName: string; role: Role }) {
         </div>
       </div>
 
-      <nav className="flex-1 space-y-0.5 px-3 py-2">
-        <p className="px-3 pb-1.5 pt-2 text-[11px] font-medium uppercase tracking-wider text-slate-600">
-          Menu
-        </p>
-        {navItems
-          .filter((item) => !item.adminOnly || role === "ADMIN")
-          .map((item) => {
-            const Icon = item.icon;
-            const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                aria-current={active ? "page" : undefined}
-                className={cn(
-                  "group relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-all",
-                  active
-                    ? "bg-slate-800/80 font-medium text-white"
-                    : "text-slate-400 hover:bg-slate-800/50 hover:text-white"
-                )}
-              >
-                {active && (
-                  <span className="absolute left-0 top-1/2 h-5 w-0.5 -translate-y-1/2 rounded-r-full bg-blue-500" />
-                )}
-                <Icon
+      <nav className="flex-1 space-y-0.5 overflow-y-auto px-3 py-2">
+        <p className="px-3 pb-1.5 pt-2 text-[11px] font-medium uppercase tracking-wider text-slate-600">Menu</p>
+        {topItems.map((item) => (
+          <NavLink key={item.href} item={item} active={pathname === item.href || pathname.startsWith(`${item.href}/`)} />
+        ))}
+
+        <div className="my-2 border-t border-slate-800/70" />
+
+        {/* Collapsible Analytics group */}
+        <button
+          onClick={() => setAnalyticsOpen((o) => !o)}
+          aria-expanded={analyticsOpen}
+          className={cn(
+            "group relative flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm transition-all",
+            analyticsActive ? "text-white" : "text-slate-400 hover:bg-slate-800/50 hover:text-white"
+          )}
+        >
+          <BarChart3
+            className={cn(
+              "h-[18px] w-[18px] transition-transform group-hover:scale-110",
+              analyticsActive ? "text-blue-400" : "text-slate-500 group-hover:text-slate-300"
+            )}
+          />
+          <span className="flex-1 text-left font-medium">Analytics</span>
+          <ChevronRight className={cn("h-4 w-4 transition-transform", analyticsOpen && "rotate-90")} />
+        </button>
+        {analyticsOpen && (
+          <div className="ml-4 space-y-0.5 border-l border-slate-800 pl-3">
+            {analyticsItems.map((item) => {
+              const active = pathname === item.href;
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  aria-current={active ? "page" : undefined}
                   className={cn(
-                    "h-[18px] w-[18px] transition-transform group-hover:scale-110",
-                    active ? "text-blue-400" : "text-slate-500 group-hover:text-slate-300"
+                    "block rounded-md px-3 py-1.5 text-sm transition-colors",
+                    active ? "bg-slate-800/80 font-medium text-white" : "text-slate-400 hover:bg-slate-800/40 hover:text-white"
                   )}
-                />
-                {item.label}
-              </Link>
-            );
-          })}
+                >
+                  {item.label}
+                </Link>
+              );
+            })}
+          </div>
+        )}
+
+        <div className="my-2 border-t border-slate-800/70" />
+
+        {bottomItems
+          .filter((item) => !item.adminOnly || role === "ADMIN")
+          .map((item) => (
+            <NavLink key={item.href} item={item} active={pathname === item.href || pathname.startsWith(`${item.href}/`)} />
+          ))}
       </nav>
 
       <div className="border-t border-slate-800 p-3">
