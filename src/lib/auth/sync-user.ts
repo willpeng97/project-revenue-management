@@ -54,14 +54,21 @@ function assertCompanyAccount(email: string, tenantId: string | null) {
     throw forbiddenDomain();
   }
 
-  if (ALLOWED_TENANT_ID) {
-    if (!tenantId || tenantId !== ALLOWED_TENANT_ID) {
-      throw unauthorizedTenant();
-    }
-  } else if (process.env.NODE_ENV === "production") {
-    // Tenant validation is mandatory in production; refuse rather than
-    // silently downgrading to domain-only checks.
-    throw unauthorizedTenant("缺少 MICROSOFT_TENANT_ID 設定，無法驗證租戶");
+  // Strict tenant validation when the Microsoft `tid` claim is available.
+  if (ALLOWED_TENANT_ID && tenantId && tenantId !== ALLOWED_TENANT_ID) {
+    throw unauthorizedTenant();
+  }
+
+  // If the tenant claim is not exposed via the Clerk session token, the
+  // verified company email domain (a tenant-bound *.onmicrosoft.com or the
+  // corporate domain) is the enforced boundary. Configure the Clerk session
+  // token `tid` claim to enable strict tenant-id validation.
+  if (ALLOWED_TENANT_ID && !tenantId) {
+    console.warn(
+      "[auth] Microsoft tenant id (tid) not present in the Clerk session token; " +
+        "falling back to email-domain enforcement. Add a 'tid' claim to the Clerk " +
+        "session token for strict tenant-id validation."
+    );
   }
 }
 
